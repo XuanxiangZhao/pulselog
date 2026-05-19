@@ -344,7 +344,7 @@ async function signInWithEmail() {
   const { error } = await supabaseClient.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.href,
+      emailRedirectTo: getAuthRedirectUrl(),
     },
   });
 
@@ -466,6 +466,19 @@ async function saveCloudStateNow() {
 function setSyncStatus(label) {
   els.syncStatus.textContent = label;
   els.topSyncStatus.textContent = `云同步：${label}`;
+}
+
+function getAuthRedirectUrl() {
+  const config = window.PULSELOG_SUPABASE || {};
+  if (config.redirectUrl && !config.redirectUrl.includes("localhost")) {
+    return config.redirectUrl;
+  }
+
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    return "https://pulselog-pi.vercel.app";
+  }
+
+  return location.origin;
 }
 
 async function refreshLiveDashboard(options = {}) {
