@@ -52,9 +52,9 @@
         <section class="cloud-panel" aria-label="云同步">
           <div class="cloud-head">
             <strong>云同步</strong>
-            <span id="sync-status">本地模式</span>
+            <span id="sync-status">未连接</span>
           </div>
-          <p id="cloud-user">连接 Supabase 后，手机和电脑会同步你的目标、记录和资料。</p>
+          <p id="cloud-user">未登录云端时，数据只保存在这台设备。登录后会同步到手机和电脑。</p>
           <div class="cloud-form">
             <input id="auth-email" type="email" placeholder="邮箱登录" autocomplete="email" />
             <button class="primary-button full" id="auth-sign-in" type="button">发送登录链接</button>
@@ -71,7 +71,7 @@
             <h1>今日总览</h1>
           </div>
           <div class="topbar-actions">
-            <span class="sync-pill" id="top-sync-status">云同步：本地模式</span>
+            <span class="sync-pill" id="top-sync-status">云同步：未连接</span>
             <button class="ghost-button" id="reset-demo" type="button">清空本地数据</button>
           </div>
         </header>
@@ -427,7 +427,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js?v=20260519-auth-cooldown"></script>
-    <script src="app.js?v=20260519-auth-cooldown"></script>
+    <script src="supabase-config.js?v=20260519-sync-ui"></script>
+    <script src="app.js?v=20260519-sync-ui"></script>
   </body>
 </html>

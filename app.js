@@ -407,8 +407,8 @@ async function initCloudSync() {
     !config.anonKey.includes("YOUR_SUPABASE_ANON_KEY");
 
   if (!configured || !window.supabase) {
-    setSyncStatus("本地模式");
-    els.cloudUser.textContent = "填写 Supabase 配置后，手机和电脑会实时同步。";
+    setSyncStatus("未连接");
+    els.cloudUser.textContent = "Supabase 未配置或脚本未加载，当前数据只保存在这台设备。";
     return;
   }
 
@@ -476,10 +476,10 @@ async function handleCloudSession(session) {
   els.authEmail.hidden = Boolean(currentUser);
 
   if (!currentUser) {
-    setSyncStatus(supabaseClient ? "未登录" : "本地模式");
+    setSyncStatus(supabaseClient ? "未登录" : "未连接");
     els.cloudUser.textContent = supabaseClient
       ? "输入邮箱登录后即可开启云同步。"
-      : "填写 Supabase 配置后，手机和电脑会实时同步。";
+      : "Supabase 未连接，当前数据只保存在这台设备。";
     unsubscribeCloud();
     return;
   }

@@ -62,6 +62,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  overflow-y: auto;
 }
 
 .brand {
@@ -118,7 +119,6 @@ button:disabled {
 }
 
 .sidebar-note {
-  margin-top: auto;
   padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
@@ -131,8 +131,8 @@ button:disabled {
 
 .cloud-panel {
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.07);
@@ -167,7 +167,14 @@ button:disabled {
 }
 
 .cloud-form input {
+  min-height: 40px;
+  padding: 10px 11px;
   background: rgba(255, 255, 255, 0.94);
+}
+
+.cloud-form .primary-button,
+.cloud-form .ghost-button {
+  min-height: 38px;
 }
 
 .cloud-form small {
