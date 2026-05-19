@@ -1,0 +1,4 @@
+*.zip
+*.log
+pulselog-vercel/
+pulselog-vercel-supabase-latest/
