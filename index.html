@@ -25,6 +25,19 @@
             <small>信息流 + 成长记录</small>
           </div>
         </div>
+        <section class="cloud-panel" aria-label="云同步">
+          <div class="cloud-head">
+            <strong>云同步</strong>
+            <span id="sync-status">未连接</span>
+          </div>
+          <p id="cloud-user">未登录云端时，数据只保存在这台设备。登录后会同步到手机和电脑。</p>
+          <div class="cloud-form">
+            <input id="auth-email" type="email" placeholder="邮箱登录" autocomplete="email" />
+            <button class="primary-button full" id="auth-sign-in" type="button">发送登录链接</button>
+            <button class="ghost-button full" id="auth-sign-out" type="button" hidden>退出登录</button>
+            <small id="auth-cooldown">请勿连续点击，邮件可能需要几十秒到达。</small>
+          </div>
+        </section>
         <nav class="nav-list">
           <button class="nav-item active" data-view="news" type="button">
             <span>资讯中心</span>
@@ -49,19 +62,6 @@
           <strong>今日节奏</strong>
           <p id="today-summary">准备记录今天的进展。</p>
         </div>
-        <section class="cloud-panel" aria-label="云同步">
-          <div class="cloud-head">
-            <strong>云同步</strong>
-            <span id="sync-status">未连接</span>
-          </div>
-          <p id="cloud-user">未登录云端时，数据只保存在这台设备。登录后会同步到手机和电脑。</p>
-          <div class="cloud-form">
-            <input id="auth-email" type="email" placeholder="邮箱登录" autocomplete="email" />
-            <button class="primary-button full" id="auth-sign-in" type="button">发送登录链接</button>
-            <button class="ghost-button full" id="auth-sign-out" type="button" hidden>退出登录</button>
-            <small id="auth-cooldown">请勿连续点击，邮件可能需要几十秒到达。</small>
-          </div>
-        </section>
       </aside>
 
       <main class="main">
