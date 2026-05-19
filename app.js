@@ -1,4 +1,6 @@
 const storageKey = "pulselog-state-v1";
+const authCooldownKey = "pulselog-auth-cooldown-until";
+const authCooldownMs = 60 * 1000;
 const refreshIntervals = {
   live: 60 * 1000,
   active: 2 * 60 * 1000,
@@ -86,6 +88,7 @@ let currentUser = null;
 let realtimeChannel = null;
 let cloudSaveTimer = null;
 let isApplyingRemoteState = false;
+let authCooldownTimer = null;
 
 const newsTemplates = [
   {
@@ -214,6 +217,7 @@ const els = {
   authEmail: document.querySelector("#auth-email"),
   authSignIn: document.querySelector("#auth-sign-in"),
   authSignOut: document.querySelector("#auth-sign-out"),
+  authCooldown: document.querySelector("#auth-cooldown"),
   syncStatus: document.querySelector("#sync-status"),
   topSyncStatus: document.querySelector("#top-sync-status"),
   cloudUser: document.querySelector("#cloud-user"),
@@ -230,6 +234,7 @@ function init() {
   els.goalDeadline.value = addDays(30);
   bindEvents();
   render();
+  updateAuthCooldown();
   initCloudSync();
   registerServiceWorker();
   refreshLiveDashboard({ reason: "initial" });
@@ -424,6 +429,11 @@ async function signInWithEmail() {
     return;
   }
 
+  if (isAuthCoolingDown()) {
+    updateAuthCooldown();
+    return;
+  }
+
   const email = els.authEmail.value.trim();
   if (!email) {
     alert("请输入邮箱。");
@@ -431,6 +441,7 @@ async function signInWithEmail() {
   }
 
   setSyncStatus("发送中");
+  startAuthCooldown(authCooldownMs);
   const { error } = await supabaseClient.auth.signInWithOtp({
     email,
     options: {
@@ -439,13 +450,17 @@ async function signInWithEmail() {
   });
 
   if (error) {
-    setSyncStatus("登录失败");
-    alert(error.message);
+    const friendlyMessage = getAuthErrorMessage(error);
+    setSyncStatus(error.message && error.message.toLowerCase().includes("rate") ? "发送受限" : "登录失败");
+    els.cloudUser.textContent = friendlyMessage;
+    els.authCooldown.textContent = friendlyMessage;
+    startAuthCooldown(5 * 60 * 1000);
     return;
   }
 
   setSyncStatus("查收邮箱");
   els.cloudUser.textContent = "登录链接已发送，请在邮箱里点击后回到这个网站。";
+  els.authCooldown.textContent = "已发送，请先查看邮箱。60 秒后可再次发送。";
 }
 
 async function signOutCloud() {
@@ -556,6 +571,44 @@ async function saveCloudStateNow() {
 function setSyncStatus(label) {
   els.syncStatus.textContent = label;
   els.topSyncStatus.textContent = `云同步：${label}`;
+}
+
+function startAuthCooldown(durationMs) {
+  const until = Date.now() + durationMs;
+  setStoredValue(authCooldownKey, String(until));
+  updateAuthCooldown();
+}
+
+function isAuthCoolingDown() {
+  const until = Number(getStoredValue(authCooldownKey) || 0);
+  return until > Date.now();
+}
+
+function updateAuthCooldown() {
+  if (authCooldownTimer) clearTimeout(authCooldownTimer);
+  const until = Number(getStoredValue(authCooldownKey) || 0);
+  const remaining = Math.max(0, until - Date.now());
+
+  if (!remaining) {
+    els.authSignIn.disabled = false;
+    els.authSignIn.textContent = "发送登录链接";
+    els.authCooldown.textContent = "请勿连续点击，邮件可能需要几十秒到达。";
+    return;
+  }
+
+  const seconds = Math.ceil(remaining / 1000);
+  els.authSignIn.disabled = true;
+  els.authSignIn.textContent = `请等待 ${seconds}s`;
+  els.authCooldown.textContent = `登录邮件已请求，请先查看邮箱；${seconds} 秒后可再次发送。`;
+  authCooldownTimer = setTimeout(updateAuthCooldown, 1000);
+}
+
+function getAuthErrorMessage(error) {
+  const message = error && error.message ? error.message : "";
+  if (message.toLowerCase().includes("rate")) {
+    return "发送频率过高。请等待几分钟后再试，不要连续点击发送。";
+  }
+  return `登录邮件发送失败：${message || "请稍后重试"}`;
 }
 
 function getAuthRedirectUrl() {
@@ -1549,6 +1602,22 @@ function getStoredState() {
     return window.localStorage.getItem(storageKey);
   } catch {
     return null;
+  }
+}
+
+function getStoredValue(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredValue(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage restrictions in preview environments.
   }
 }
 

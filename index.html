@@ -59,6 +59,7 @@
             <input id="auth-email" type="email" placeholder="邮箱登录" autocomplete="email" />
             <button class="primary-button full" id="auth-sign-in" type="button">发送登录链接</button>
             <button class="ghost-button full" id="auth-sign-out" type="button" hidden>退出登录</button>
+            <small id="auth-cooldown">请勿连续点击，邮件可能需要几十秒到达。</small>
           </div>
         </section>
       </aside>
@@ -426,7 +427,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js?v=20260519-digital-self"></script>
-    <script src="app.js?v=20260519-digital-self"></script>
+    <script src="supabase-config.js?v=20260519-auth-cooldown"></script>
+    <script src="app.js?v=20260519-auth-cooldown"></script>
   </body>
 </html>
