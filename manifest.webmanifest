@@ -1,0 +1,17 @@
+{
+  "name": "PulseLog Digital Self",
+  "short_name": "PulseLog",
+  "description": "个人信息获取、资料整理、目标规划和成就记录系统。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#edf3f2",
+  "theme_color": "#102a2b",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

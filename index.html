@@ -11,6 +11,9 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#102a2b" />
   </head>
   <body>
     <div class="app-shell">
@@ -31,6 +34,15 @@
           </button>
           <button class="nav-item" data-view="goals" type="button">
             <span>目标清单</span>
+          </button>
+          <button class="nav-item" data-view="library" type="button">
+            <span>资料库</span>
+          </button>
+          <button class="nav-item" data-view="review" type="button">
+            <span>复盘系统</span>
+          </button>
+          <button class="nav-item" data-view="profile" type="button">
+            <span>数字自己</span>
           </button>
         </nav>
         <div class="sidebar-note">
@@ -283,6 +295,9 @@
                 <input id="goal-title" type="text" placeholder="目标名称" required />
                 <input id="goal-deadline" type="date" required />
                 <select id="goal-area">
+                  <option value="年度">年度</option>
+                  <option value="月度">月度</option>
+                  <option value="本周">本周</option>
                   <option value="健康">健康</option>
                   <option value="学习">学习</option>
                   <option value="职业">职业</option>
@@ -295,11 +310,123 @@
             <div class="kanban" id="goal-list"></div>
           </div>
         </section>
+
+        <section class="view" id="library-view">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Knowledge Base</p>
+              <h2>资料库、标签与阅读摘要</h2>
+            </div>
+            <button class="ghost-button" data-view-jump="profile" type="button">查看个人画像</button>
+          </div>
+          <div class="library-layout">
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Capture</p>
+                  <h2>保存资料</h2>
+                </div>
+              </div>
+              <form class="stack-form" id="library-form">
+                <input id="library-title" type="text" placeholder="资料标题" required />
+                <input id="library-url" type="url" placeholder="链接 URL，可选" />
+                <input id="library-tags" type="text" placeholder="标签，用逗号分隔：AI, 投资, CS2" />
+                <textarea id="library-note" rows="4" placeholder="摘要、观点、可行动结论"></textarea>
+                <button class="primary-button full" type="submit">保存到资料库</button>
+              </form>
+            </section>
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Archive</p>
+                  <h2>已保存资料</h2>
+                </div>
+                <span class="panel-summary" id="library-summary">0 条资料</span>
+              </div>
+              <div class="library-list" id="library-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="review-view">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Review</p>
+              <h2>每日/每周复盘，把经历变成资产</h2>
+            </div>
+            <button class="ghost-button" data-view-jump="goals" type="button">关联目标</button>
+          </div>
+          <div class="review-layout">
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Reflection</p>
+                  <h2>写一条复盘</h2>
+                </div>
+              </div>
+              <form class="stack-form" id="review-form">
+                <select id="review-type">
+                  <option value="daily">每日复盘</option>
+                  <option value="weekly">每周复盘</option>
+                  <option value="project">项目复盘</option>
+                </select>
+                <textarea id="review-win" rows="3" placeholder="做得好的地方"></textarea>
+                <textarea id="review-learn" rows="3" placeholder="学到什么 / 发现什么"></textarea>
+                <textarea id="review-next" rows="3" placeholder="下一步行动"></textarea>
+                <button class="primary-button full" type="submit">保存复盘</button>
+              </form>
+            </section>
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Timeline</p>
+                  <h2>复盘时间线</h2>
+                </div>
+              </div>
+              <div class="timeline" id="review-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="profile-view">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Digital Self</p>
+              <h2>你的关注、原则、目标和知识资产</h2>
+            </div>
+            <button class="ghost-button" id="generate-ai-summary" type="button">生成摘要</button>
+          </div>
+          <div class="profile-grid">
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Identity</p>
+                  <h2>个人画像设置</h2>
+                </div>
+              </div>
+              <form class="stack-form" id="profile-form">
+                <input id="profile-focus" type="text" placeholder="关注领域：AI, 篮球, CS2, 宏观经济" />
+                <textarea id="profile-principles" rows="4" placeholder="你的原则、价值观、做事方式"></textarea>
+                <textarea id="profile-vision" rows="4" placeholder="你想成为怎样的人"></textarea>
+                <button class="primary-button full" type="submit">保存个人画像</button>
+              </form>
+            </section>
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">AI Brief</p>
+                  <h2>数字自己摘要</h2>
+                </div>
+              </div>
+              <div class="ai-brief" id="ai-brief"></div>
+            </section>
+          </div>
+        </section>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js?v=20260519-cloud"></script>
-    <script src="app.js?v=20260519-cloud"></script>
+    <script src="supabase-config.js?v=20260519-digital-self"></script>
+    <script src="app.js?v=20260519-digital-self"></script>
   </body>
 </html>

@@ -53,6 +53,22 @@ const defaultState = {
       done: false,
     },
   ],
+  libraryItems: [
+    {
+      id: uid(),
+      date: today(),
+      title: "PulseLog 产品方向",
+      url: "",
+      tags: ["数字自己", "资料库"],
+      note: "把信息获取、目标规划、资料沉淀和个人复盘合并成一个长期使用的系统。",
+    },
+  ],
+  reviews: [],
+  profile: {
+    focus: "AI, 篮球, CS2, 宏观经济, 个人成长",
+    principles: "持续记录，定期复盘，把输入转化为行动。",
+    vision: "成为一个能清晰获取信息、稳定推进目标、持续积累知识资产的人。",
+  },
 };
 
 let state = loadState();
@@ -176,6 +192,25 @@ const els = {
   goalArea: document.querySelector("#goal-area"),
   goalList: document.querySelector("#goal-list"),
   goalSummary: document.querySelector("#goal-summary"),
+  libraryForm: document.querySelector("#library-form"),
+  libraryTitle: document.querySelector("#library-title"),
+  libraryUrl: document.querySelector("#library-url"),
+  libraryTags: document.querySelector("#library-tags"),
+  libraryNote: document.querySelector("#library-note"),
+  libraryList: document.querySelector("#library-list"),
+  librarySummary: document.querySelector("#library-summary"),
+  reviewForm: document.querySelector("#review-form"),
+  reviewType: document.querySelector("#review-type"),
+  reviewWin: document.querySelector("#review-win"),
+  reviewLearn: document.querySelector("#review-learn"),
+  reviewNext: document.querySelector("#review-next"),
+  reviewList: document.querySelector("#review-list"),
+  profileForm: document.querySelector("#profile-form"),
+  profileFocus: document.querySelector("#profile-focus"),
+  profilePrinciples: document.querySelector("#profile-principles"),
+  profileVision: document.querySelector("#profile-vision"),
+  aiBrief: document.querySelector("#ai-brief"),
+  generateAiSummary: document.querySelector("#generate-ai-summary"),
   authEmail: document.querySelector("#auth-email"),
   authSignIn: document.querySelector("#auth-sign-in"),
   authSignOut: document.querySelector("#auth-sign-out"),
@@ -196,8 +231,16 @@ function init() {
   bindEvents();
   render();
   initCloudSync();
+  registerServiceWorker();
   refreshLiveDashboard({ reason: "initial" });
   startAutoRefresh();
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+  navigator.serviceWorker.register("/sw.js").catch(() => {
+    // PWA install support is optional; the app still works without the service worker.
+  });
 }
 
 function bindEvents() {
@@ -277,6 +320,49 @@ function bindEvents() {
     saveAndRender();
   });
 
+  els.libraryForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.libraryItems.unshift({
+      id: uid(),
+      date: today(),
+      title: els.libraryTitle.value.trim(),
+      url: els.libraryUrl.value.trim(),
+      tags: parseTags(els.libraryTags.value),
+      note: els.libraryNote.value.trim(),
+    });
+    els.libraryForm.reset();
+    saveAndRender();
+  });
+
+  els.reviewForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.reviews.unshift({
+      id: uid(),
+      date: today(),
+      type: els.reviewType.value,
+      win: els.reviewWin.value.trim(),
+      learn: els.reviewLearn.value.trim(),
+      next: els.reviewNext.value.trim(),
+    });
+    els.reviewForm.reset();
+    saveAndRender();
+  });
+
+  els.profileForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.profile = {
+      focus: els.profileFocus.value.trim(),
+      principles: els.profilePrinciples.value.trim(),
+      vision: els.profileVision.value.trim(),
+    };
+    saveAndRender();
+  });
+
+  els.generateAiSummary.addEventListener("click", () => {
+    renderAiBrief();
+    switchView("profile");
+  });
+
   els.reset.addEventListener("click", () => {
     if (!confirm("确定清空这个浏览器里的 PulseLog 数据吗？")) return;
     removeStoredState();
@@ -299,6 +385,10 @@ function render() {
   renderGrowth();
   renderAchievements();
   renderGoals();
+  renderLibrary();
+  renderReviews();
+  renderProfile();
+  renderAiBrief();
   renderSummary();
   renderTicker();
 }
@@ -1205,6 +1295,112 @@ function renderGoals() {
   });
 }
 
+function renderLibrary() {
+  const items = state.libraryItems || [];
+  els.librarySummary.textContent = `${items.length} 条资料 · ${collectTags(items).length} 个标签`;
+
+  if (!items.length) {
+    els.libraryList.innerHTML = '<div class="empty-state">保存一篇文章、一个视频或一个想法，开始建立你的资料库。</div>';
+    return;
+  }
+
+  els.libraryList.innerHTML = items
+    .map(
+      (item) => `
+        <article class="library-item">
+          <div class="tag-row">
+            <span class="tag">${formatDate(item.date)}</span>
+            ${(item.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
+          </div>
+          <h3>${item.url ? `<a href="${escapeAttribute(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>` : escapeHtml(item.title)}</h3>
+          ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
+          <div class="goal-actions">
+            <button class="danger-button" data-delete-library="${item.id}" type="button">删除</button>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+
+  document.querySelectorAll("[data-delete-library]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.libraryItems = state.libraryItems.filter((item) => item.id !== button.dataset.deleteLibrary);
+      saveAndRender();
+    });
+  });
+}
+
+function renderReviews() {
+  const reviews = state.reviews || [];
+  if (!reviews.length) {
+    els.reviewList.innerHTML = '<div class="empty-state">写下今天最重要的收获和下一步行动。</div>';
+    return;
+  }
+
+  const typeNames = {
+    daily: "每日复盘",
+    weekly: "每周复盘",
+    project: "项目复盘",
+  };
+
+  els.reviewList.innerHTML = reviews
+    .slice(0, 16)
+    .map(
+      (review) => `
+        <article class="timeline-item">
+          <time>${formatDate(review.date)} · ${typeNames[review.type] || "复盘"}</time>
+          ${review.win ? `<p><strong>做得好：</strong>${escapeHtml(review.win)}</p>` : ""}
+          ${review.learn ? `<p><strong>学到：</strong>${escapeHtml(review.learn)}</p>` : ""}
+          ${review.next ? `<p><strong>下一步：</strong>${escapeHtml(review.next)}</p>` : ""}
+          <button class="danger-button" data-delete-review="${review.id}" type="button">删除</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  document.querySelectorAll("[data-delete-review]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.reviews = state.reviews.filter((review) => review.id !== button.dataset.deleteReview);
+      saveAndRender();
+    });
+  });
+}
+
+function renderProfile() {
+  const profile = state.profile || {};
+  els.profileFocus.value = profile.focus || "";
+  els.profilePrinciples.value = profile.principles || "";
+  els.profileVision.value = profile.vision || "";
+}
+
+function renderAiBrief() {
+  const profile = state.profile || {};
+  const activeGoals = (state.goals || []).filter((goal) => !goal.done);
+  const latestReview = (state.reviews || [])[0];
+  const topTags = collectTags(state.libraryItems || []).slice(0, 8);
+  const latestWeight = getSortedWeights().slice(-1)[0];
+  const winsThisWeek = (state.achievements || []).filter((item) => daysBetween(item.date, today()) <= 7).length;
+
+  els.aiBrief.innerHTML = `
+    <div class="brief-block">
+      <h3>当前画像</h3>
+      <p>${escapeHtml(profile.vision || "你正在建立一个能持续同步、沉淀资料并推进目标的数字自己。")}</p>
+    </div>
+    <div class="brief-block">
+      <h3>关注领域</h3>
+      <p>${escapeHtml(profile.focus || "尚未填写关注领域。")}${topTags.length ? ` · 高频标签：${topTags.map(escapeHtml).join(" / ")}` : ""}</p>
+    </div>
+    <div class="brief-block">
+      <h3>执行状态</h3>
+      <p>${activeGoals.length} 个目标进行中，本周记录 ${winsThisWeek} 条成就${latestWeight ? `，最新体重 ${latestWeight.value.toFixed(1)}kg` : ""}。</p>
+    </div>
+    <div class="brief-block">
+      <h3>建议下一步</h3>
+      <p>${escapeHtml(latestReview && latestReview.next ? latestReview.next : activeGoals[0] ? `继续推进「${activeGoals[0].title}」，并在今晚写一条复盘。` : "创建一个本周重点目标，并保存至少一条有价值资料。")}</p>
+    </div>
+  `;
+}
+
 function renderSummary() {
   const todayWins = state.achievements.filter((item) => item.date === today()).length;
   const activeGoals = state.goals.filter((goal) => !goal.done).length;
@@ -1288,6 +1484,30 @@ function drawWeightChart() {
 
 function getSortedWeights() {
   return [...state.weightEntries].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function parseTags(value) {
+  return String(value || "")
+    .split(/[,，]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function collectTags(items) {
+  const counts = new Map();
+  items.forEach((item) => {
+    (item.tags || []).forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
+  });
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([tag]) => tag);
+}
+
+function daysBetween(dateA, dateB) {
+  const first = new Date(`${dateA}T00:00:00`).getTime();
+  const second = new Date(`${dateB}T00:00:00`).getTime();
+  return Math.abs(Math.round((second - first) / 86400000));
 }
 
 function toggleSavedNews(id) {
